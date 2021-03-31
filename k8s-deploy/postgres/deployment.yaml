@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  namespace: development
+  name: pg-ss
+spec:
+  replicas: 1
+  serviceName: postgres
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      volumes:
+      - name: persistent-storage-data
+        hostPath:
+          path: /pg-k8s-data
+      - name: static-files
+        configMap:
+          name: static-files
+      - name: conf-dir
+        projected:
+          sources:
+          - configMap:
+              name: pg-cm-postgresql
+          - configMap:
+              name: pg-cm-pghba
+      containers:
+      - name: postgres
+        image: postgres:13
+        imagePullPolicy: Always
+        resources:
+          limits:
+            memory: "32G"
+            cpu: "4" 
+        volumeMounts:
+        - name: static-files
+          mountPath: /docker-entrypoint-initdb.d
+        - name: conf-dir
+          mountPath: /etc/postgresql
+        - mountPath: /data-dbms
+          name: persistent-storage-data
+        envFrom:
+        - configMapRef:
+            name: pg-cm

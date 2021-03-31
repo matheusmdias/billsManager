@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: static-files
+  namespace: development
+data:
+  run.sh: |
+    #!/bin/bash
+    pg_ctl stop -t 2
+    postgres -c 'config_file=/etc/postgresql/postgresql.conf' 
